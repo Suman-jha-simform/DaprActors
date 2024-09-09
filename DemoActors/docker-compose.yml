@@ -1,0 +1,33 @@
+﻿version: '3.8'
+
+services:
+  dotnet_app:
+    image: demoactors-dotnet_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - demo_network
+
+  dapr_sidecar:
+    image: daprio/daprd:latest
+    command: ["daprd", "--app-id", "dotnet_app", "--app-port", "5002", "--dapr-http-port", "3500", "--dapr-grpc-port", "50001"]
+    depends_on:
+      - dotnet_app
+    networks:
+      - demo_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - demo_network
+
+networks:
+  demo_network:
+    driver: bridge
